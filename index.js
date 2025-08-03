@@ -7,11 +7,24 @@ async function startBot() {
 
   const sock = makeWASocket({ auth: state });
 
-  const http = require('http');
-http.createServer((req, res) => {
-  res.write("WhatsApp bot running");
-  res.end();
-}).listen(process.env.PORT || 3000);
+ const http = require('http');
+const PORT = process.env.PORT || 10000;
+
+let serverStarted = false;
+
+function startServerOnce() {
+    if (serverStarted) return;
+    serverStarted = true;
+
+    http.createServer((req, res) => {
+        res.write("Bot is running");
+        res.end();
+    }).listen(PORT, () => {
+        console.log("✅ HTTP server started on port", PORT);
+    });
+}
+
+startServerOnce();
 
   sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
     if (qr) {
@@ -69,6 +82,7 @@ http.createServer((req, res) => {
 }
 
 startBot();
+
 
 
 
