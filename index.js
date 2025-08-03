@@ -7,6 +7,12 @@ async function startBot() {
 
   const sock = makeWASocket({ auth: state });
 
+  const http = require('http');
+http.createServer((req, res) => {
+  res.write("WhatsApp bot running");
+  res.end();
+}).listen(process.env.PORT || 3000);
+
   sock.ev.on('connection.update', ({ connection, lastDisconnect, qr }) => {
     if (qr) {
       console.log('\n📱 Scan this QR code:\n');
@@ -63,5 +69,6 @@ async function startBot() {
 }
 
 startBot();
+
 
 
