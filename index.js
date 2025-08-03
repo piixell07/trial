@@ -1,11 +1,39 @@
 const { default: makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
-const { Boom } = require('@hapi/boom');
-const qrcode = require('qrcode-terminal');
+const http = require('http');
 
 async function startBot() {
   const { state, saveCreds } = await useMultiFileAuthState('./auth');
 
-  const sock = makeWASocket({ auth: state });
+  const sock = makeWASocket({
+    auth: state,
+    getMessage: async () => undefined,
+    browser: ['Ubuntu', 'Chrome', '22.04.4'],
+  });
+
+  sock.ev.on('creds.update', saveCreds);
+
+  sock.ev.on('connection.update', ({ connection, lastDisconnect }) => {
+    if (connection === 'close') {
+      const shouldReconnect = (lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut);
+      console.log('❌ Disconnected. Reconnecting:', shouldReconnect);
+      if (shouldReconnect) startBot();
+    } else if (connection === 'open') {
+      console.log('✅ Connected to WhatsApp');
+    }
+  });
+}
+
+startBot();
+
+// 🧩 Dummy server for Render or Oracle
+const PORT = process.env.PORT || 10000;
+http.createServer((req, res) => {
+  res.write('🤖 WhatsApp Bot Running');
+  res.end();
+}).listen(PORT, () => {
+  console.log('🌐 Server started on port', PORT);
+});
+
 
  const http = require('http');
 const PORT = process.env.PORT || 10000;
@@ -65,7 +93,7 @@ startServerOnce();
       info: 'This is a WhatsApp bot powered by Pixel 🤖.',
       bye: 'Goodbye! Have a nice day! 👋',
     };
-
+  
     const lowerText = text.toLowerCase();
 
     // Check if user message matches any reply trigger
@@ -82,6 +110,7 @@ startServerOnce();
 }
 
 startBot();
+
 
 
 
